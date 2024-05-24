@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import sys
 import platform
-from scripts.installpipertts import setup_piper_tts
+import importlib.util
 
 
 def is_windows():
@@ -122,11 +122,21 @@ def main():
     copy_file('.env.example', '.env')
     print("Please open .env and enter your API keys")
 
-    # Ask if the user wants to install Piper TTS
-    install_piper = input("Do you want to install Piper local TTS? (y/n): ")
-    if install_piper.lower() == 'y':
-        setup_piper_tts()
-
+    # Prompt the user to install Piper TTS
+    install_piper = input("Would you like to install Piper TTS? (y/n): ").strip().lower()
+    if install_piper == 'y':
+        # Import the setup function from installpipertts.py
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        installpipertts_path = os.path.join(script_dir, 'scripts', 'installpipertts.py')
+        
+        spec = importlib.util.spec_from_file_location("installpipertts", installpipertts_path)
+        installpipertts = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(installpipertts)
+        
+        # Call the setup function
+        installpipertts.setup_piper_tts()
+    else:
+        print("Piper TTS installation skipped.")
 
     create_run_files()
 
